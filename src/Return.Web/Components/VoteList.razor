@@ -15,7 +15,7 @@
 <div class="@this.CssClass" data-test-element-id="vote-list" data-id="@this.ItemId">
     @if (this.RetrospectiveStatus.IsVotingAllowed)
     {
-        if (this.Votes.CanCastVote(this.CurrentParticipant.Id, this.Lane.Id) && !this.IsSaving) {
+        if (this.Votes.CanCastVote(this.CurrentParticipant.Id) && !this.IsSaving) {
             <span class="vote-list__vote-button" @onclick="@DoVote">
                 <i class="fas fa-thumbs-up"></i>
             </span>

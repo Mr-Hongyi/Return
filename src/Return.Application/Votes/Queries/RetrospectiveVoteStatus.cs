@@ -31,7 +31,14 @@ namespace Return.Application.Votes.Queries {
             this.VotesByNoteGroup.Initialize(this.Votes);
         }
 
-        public bool CanCastVote(int participantId, int laneId) => this.VotesByParticipant.Get(participantId).Count(x => x.IsCast && x.LaneId == laneId) < this._maxVotes;
+        public bool CanCastVote(int participantId) {
+            int vote_counter = 0;
+            foreach (VoteModel x in this.VotesByParticipant.Get(participantId)) {
+                if (x.IsCast) {
+                    vote_counter += 1;
+                }
+            }
+            return vote_counter < this._maxVotes; }
 
         public void Apply(VoteChange notification) {
             if (notification == null) throw new ArgumentNullException(nameof(notification));

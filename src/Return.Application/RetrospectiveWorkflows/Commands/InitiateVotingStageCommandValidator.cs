@@ -16,7 +16,7 @@ namespace Return.Application.RetrospectiveWorkflows.Commands {
             this.RuleFor(x => x.VotesPerGroup)
                 .GreaterThan(0)
                 .LessThan(8)
-                .WithName("Number of votes per lane");
+                .WithName("Number of votes");
         }
     }
 }

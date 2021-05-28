@@ -60,8 +60,8 @@ namespace Return.Application.Votes.Queries {
             var result = new RetrospectiveVoteStatus(numberOfVotesPerLane);
 
             foreach (Participant participant in participants) {
+                int votesCast = 0;
                 foreach (NoteLane noteLane in lanes) {
-                    int votesCast = 0;
                     foreach (NoteVote noteVote in votes[participant.Id]) {
                         if ((noteVote.Note?.Lane ?? noteVote.NoteGroup?.Lane)?.Id != noteLane.Id) {
                             continue;
@@ -70,15 +70,14 @@ namespace Return.Application.Votes.Queries {
                         result.Votes.Add(this._mapper.Map<VoteModel>(noteVote));
                         votesCast++;
                     }
-
-                    int votesLeft = numberOfVotesPerLane - votesCast;
-                    for (int v = 0; v < votesLeft; v++) {
-                        result.Votes.Add(new VoteModel {
-                            ParticipantId = participant.Id,
-                            ParticipantColor = this._mapper.Map<ColorModel>(participant.Color),
-                            ParticipantName = participant.Name
-                        });
-                    }
+                }
+                int votesLeft = numberOfVotesPerLane - votesCast;
+                for (int v = 0; v < votesLeft; v++) {
+                    result.Votes.Add(new VoteModel {
+                        ParticipantId = participant.Id,
+                        ParticipantColor = this._mapper.Map<ColorModel>(participant.Color),
+                        ParticipantName = participant.Name
+                    });
                 }
             }
 
