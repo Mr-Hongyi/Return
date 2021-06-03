@@ -56,9 +56,9 @@ namespace Return.Application.Notes.Commands.MoveNote {
             }
 
             // Validate
-            if (newTargetGroup != null && note.Lane.Id != newTargetGroup.Lane.Id) {
-                throw new InvalidOperationException("Invalid move command: this would result in a lane change.");
-            }
+            //if (newTargetGroup != null && note.Lane.Id != newTargetGroup.Lane.Id) {
+            //    throw new InvalidOperationException("Invalid move command: this would result in a lane change.");
+            //}
 
             NoteGroup involvedGroup = newTargetGroup ??
                                       note.Group ??
@@ -67,6 +67,9 @@ namespace Return.Application.Notes.Commands.MoveNote {
 
             // Update
             note.GroupId = newTargetGroup?.Id;
+            if (newTargetGroup != null) {
+                note.Lane = newTargetGroup.Lane;
+            }
             note.Group = newTargetGroup;
 
             await dbContext.SaveChangesAsync(cancellationToken);

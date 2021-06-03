@@ -126,7 +126,9 @@ namespace Return.Web.Components {
         protected bool CanEdit() => this.RetrospectiveStatus.IsEditingNotesAllowed && this.Data.IsOwnedByCurrentUser;
         protected bool CanView() => this.RetrospectiveStatus.IsViewingOtherNotesAllowed || this.Data.IsOwnedByCurrentUser;
 
-        protected void HandleDragStart(RetrospectiveNote selectedNote) => this.Container.Payload = selectedNote;
+        protected void HandleDragStart(RetrospectiveNote selectedNote) {
+            Globals.SelectedNoteId = selectedNote.Id;
+            this.Container.Payload = selectedNote; }
         protected void HandleDragEnd() => this.Container.Payload = null;
 
         protected async Task Delete() {

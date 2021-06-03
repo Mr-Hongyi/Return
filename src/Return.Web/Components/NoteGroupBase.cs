@@ -90,10 +90,7 @@ namespace Return.Web.Components {
 
         protected async Task HandleDrop() {
             this.DropClass = "";
-
-            if (this.Container.Payload == null) return;
             if (this.GroupId == this.Container.Payload?.GroupId) return;
-
             await this.Container.UpdateGroupAsync(this.Data.Id);
         }
 

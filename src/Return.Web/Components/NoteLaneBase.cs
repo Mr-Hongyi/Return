@@ -23,6 +23,7 @@ namespace Return.Web.Components {
     using Application.RetrospectiveLanes.Queries;
     using Application.Retrospectives.Queries.GetRetrospectiveStatus;
     using Domain.ValueObjects;
+    using Domain.Entities;
     using Microsoft.AspNetCore.Components;
     using Microsoft.Extensions.Logging;
     using Services;
@@ -94,6 +95,10 @@ namespace Return.Web.Components {
 
         protected RetrospectiveLaneContent Contents { get; private set; }
 
+        protected RetrospectiveLaneContent Contents1 { get; private set; }
+
+        protected RetrospectiveLaneContent Contents2 { get; private set; }
+
         protected RetrospectiveNote LastAddedNote { get; private set; }
 
         protected bool ShowErrorMessage { get; private set; }
@@ -102,7 +107,20 @@ namespace Return.Web.Components {
 
         protected override Task OnInitializedAsync() => this.Load();
 
-        private async Task Load() => this.Contents = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, this.Lane?.Id ?? 0));
+        private async Task Load() {
+            this.Contents = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, this.Lane?.Id ?? 0));
+            if ((int)KnownNoteLane.Stop == this.Lane?.Id) {
+                this.Contents1 = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Start));
+                this.Contents2 = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Continue));
+            }else if ((int)KnownNoteLane.Start == this.Lane?.Id) {
+                this.Contents1 = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Stop));
+                this.Contents2 = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Continue));
+            }
+            else{
+                this.Contents1 = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Start));
+                this.Contents2 = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Stop));
+            }
+        }
 
         protected override void OnInitialized() {
             this.NoteLaneUpdatedSubscription.Subscribe(this);
@@ -113,21 +131,20 @@ namespace Return.Web.Components {
             base.OnInitialized();
         }
 
-        internal async Task UpdateGroupAsync(int? groupId) {
+        internal async Task UpdateGroupDropAsync(int? groupId) {
             if (this.Payload == null) {
                 return;
             }
-
             int noteToMoveId = this.Payload.Id;
 
-            if (!this.ExecuteNoteMove(noteId: noteToMoveId, newGroupId: groupId)) return;
+            if (!this.ExecuteNoteDrop(noteId: noteToMoveId, newGroupId: groupId)) return;
 
             await this.Mediator.Send(new MoveNoteCommand(noteToMoveId, groupId));
 
             this.StateHasChanged();
         }
 
-        private bool ExecuteNoteMove(int noteId, int? newGroupId) {
+        private bool ExecuteNoteDrop(int noteId, int? newGroupId) {
             // Find the source group, target group and the note
             RetrospectiveNoteGroup sourceGroup = null, targetGroup = null;
             RetrospectiveNote note = null;
@@ -169,6 +186,8 @@ namespace Return.Web.Components {
             else if (targetGroup == null) {
                 sourceGroup.Notes.Remove(note);
                 this.Contents.Notes.Add(note);
+                this.Contents1.Notes.Remove(note);
+                this.Contents2.Notes.Remove(note);
                 note.GroupId = null;
             }
             else {
@@ -180,12 +199,156 @@ namespace Return.Web.Components {
             return true;
         }
 
+        internal async Task UpdateGroupAsync(int? groupId) {
+            //if (this.Payload == null) {
+            //    return;
+            //}
+            if (Globals.SelectedNoteId == -1) {
+                return;
+            }
+
+            int noteToMoveId = Globals.SelectedNoteId;//this.Payload.Id;
+
+
+            
+            
+
+            if (!this.ExecuteNoteMove(noteId: noteToMoveId, newGroupId: groupId)) return;
+
+            await this.Mediator.Send(new MoveNoteCommand(noteToMoveId, groupId));
+
+            this.StateHasChanged();
+            Globals.SelectedNoteId = -1;
+        }
+
+        private bool ExecuteNoteMove(int noteId, int? newGroupId) {
+
+
+            // Find the source group, target group and the note
+            RetrospectiveNoteGroup sourceGroup = null, targetGroup = null;
+            RetrospectiveNote note = null;
+            int note_lane_id = 0;
+
+            foreach (RetrospectiveNoteGroup noteGroup in this.Contents.Groups) {
+                if (noteGroup.Id == newGroupId) {
+                    targetGroup = noteGroup;
+                }
+
+                foreach (RetrospectiveNote groupNote in noteGroup.Notes) {
+                    if (groupNote.Id == noteId) {
+                        sourceGroup = noteGroup;
+                        note = groupNote;
+                    }
+                }
+
+                if (sourceGroup != null && targetGroup != null) {
+                    break;
+                }
+            }
+
+            foreach (RetrospectiveNoteGroup noteGroup in this.Contents1.Groups) {
+                if (noteGroup.Id == newGroupId) {
+                    targetGroup = noteGroup;
+                }
+
+                foreach (RetrospectiveNote groupNote in noteGroup.Notes) {
+                    if (groupNote.Id == noteId) {
+                        sourceGroup = noteGroup;
+                        note = groupNote;
+                    }
+                }
+
+                if (sourceGroup != null && targetGroup != null) {
+                    break;
+                }
+            }
+
+            foreach (RetrospectiveNoteGroup noteGroup in this.Contents2.Groups) {
+                if (noteGroup.Id == newGroupId) {
+                    targetGroup = noteGroup;
+                }
+
+                foreach (RetrospectiveNote groupNote in noteGroup.Notes) {
+                    if (groupNote.Id == noteId) {
+                        sourceGroup = noteGroup;
+                        note = groupNote;
+                    }
+                }
+
+                if (sourceGroup != null && targetGroup != null) {
+                    break;
+                }
+            }
+
+            foreach (RetrospectiveNote noGroupNote in this.Contents.Notes) {
+                if (noGroupNote.Id == noteId) {
+                    sourceGroup = null;
+                    note = noGroupNote;
+                    note_lane_id = 0;
+                }
+            }
+
+            foreach (RetrospectiveNote noGroupNote in this.Contents1.Notes) {
+                if (noGroupNote.Id == noteId) {
+                    sourceGroup = null;
+                    note = noGroupNote;
+                    note_lane_id = 1;
+                }
+            }
+
+            foreach (RetrospectiveNote noGroupNote in this.Contents2.Notes) {
+                if (noGroupNote.Id == noteId) {
+                    sourceGroup = null;
+                    note = noGroupNote;
+                    note_lane_id = 2;
+                }
+            }
+
+
+            // No need to do anything or can't do anything
+            if (sourceGroup == targetGroup || note == null) {
+                return false;
+            }
+
+            // Update state
+            if (sourceGroup == null) {
+                if (note_lane_id == 1) {
+                    this.Contents1.Notes.Remove(note);
+                }
+                else if (note_lane_id == 2) {
+                    this.Contents2.Notes.Remove(note);
+                }
+                else {
+                    this.Contents.Notes.Remove(note);
+                }
+                targetGroup.Notes.Add(note);
+                note.GroupId = targetGroup.Id;
+                
+            }
+            else if (targetGroup == null) {
+                sourceGroup.Notes.Remove(note);
+                this.Contents.Notes.Add(note);
+                this.Contents1.Notes.Remove(note);
+                this.Contents2.Notes.Remove(note);
+                note.GroupId = null;
+            }
+            else {
+                sourceGroup.Notes.Remove(note);
+                this.Contents1.Notes.Remove(note);
+                this.Contents2.Notes.Remove(note);
+                targetGroup.Notes.Add(note);
+                note.GroupId = targetGroup.Id;
+            }
+
+            return true;
+        }
+
         public Task OnNoteMoved(NoteMovedNotification notification) {
             // Filter out irrelevant notifications
-            if (notification.LaneId != this.Lane.Id ||
-                notification.RetroId != this.RetroId.StringId) {
-                return Task.CompletedTask;
-            }
+            //if (notification.LaneId != this.Lane.Id ||
+            //    notification.RetroId != this.RetroId.StringId) {
+            //    return Task.CompletedTask;
+            //}
 
             this.InvokeAsync(() => {
                 if (this.ExecuteNoteMove(notification.NoteId, notification.GroupId)) {
