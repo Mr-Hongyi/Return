@@ -95,10 +95,6 @@ namespace Return.Web.Components {
 
         protected RetrospectiveLaneContent Contents { get; private set; }
 
-        protected RetrospectiveLaneContent Contents1 { get; private set; }
-
-        protected RetrospectiveLaneContent Contents2 { get; private set; }
-
         protected RetrospectiveNote LastAddedNote { get; private set; }
 
         protected bool ShowErrorMessage { get; private set; }
@@ -109,16 +105,36 @@ namespace Return.Web.Components {
 
         private async Task Load() {
             this.Contents = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, this.Lane?.Id ?? 0));
+            
+            Globals.ContentsStart = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Start));
+            Globals.ContentsStop = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Stop));
+            Globals.ContentsContinue = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Continue));
+
+            this.setLaneStatus();
+
+        }
+
+        private void updateLaneStatus() {
             if ((int)KnownNoteLane.Stop == this.Lane?.Id) {
-                this.Contents1 = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Start));
-                this.Contents2 = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Continue));
-            }else if ((int)KnownNoteLane.Start == this.Lane?.Id) {
-                this.Contents1 = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Stop));
-                this.Contents2 = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Continue));
+                 Globals.ContentsStop = this.Contents;
             }
-            else{
-                this.Contents1 = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Start));
-                this.Contents2 = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Stop));
+            else if ((int)KnownNoteLane.Start == this.Lane?.Id) {
+                 Globals.ContentsStart = this.Contents;
+            }
+            else {
+                 Globals.ContentsContinue = this.Contents;
+            }
+        }
+
+        private void setLaneStatus() {
+            if ((int)KnownNoteLane.Stop == this.Lane?.Id) {
+                this.Contents = Globals.ContentsStop;
+            }
+            else if ((int)KnownNoteLane.Start == this.Lane?.Id) {
+                this.Contents = Globals.ContentsStart;
+            }
+            else {
+                this.Contents = Globals.ContentsContinue;
             }
         }
 
@@ -133,85 +149,63 @@ namespace Return.Web.Components {
 
         internal async Task UpdateGroupDropAsync(int? groupId) {
             if (this.Payload == null) {
+                this.StateHasChanged();
+                return;
+            }
+            if (Globals.SelectedNoteId == -1) {
+                this.StateHasChanged();
                 return;
             }
             int noteToMoveId = this.Payload.Id;
 
-            if (!this.ExecuteNoteDrop(noteId: noteToMoveId, newGroupId: groupId)) return;
+            if (!this.ExecuteNoteDrop(noteId: noteToMoveId)) return;
 
             await this.Mediator.Send(new MoveNoteCommand(noteToMoveId, groupId));
 
             this.StateHasChanged();
+            Globals.SelectedNoteId = -1;
         }
 
-        private bool ExecuteNoteDrop(int noteId, int? newGroupId) {
+        private bool ExecuteNoteDrop(int noteId) {
             // Find the source group, target group and the note
-            RetrospectiveNoteGroup sourceGroup = null, targetGroup = null;
+            RetrospectiveNoteGroup sourceGroup = null;
             RetrospectiveNote note = null;
             foreach (RetrospectiveNoteGroup noteGroup in this.Contents.Groups) {
-                if (noteGroup.Id == newGroupId) {
-                    targetGroup = noteGroup;
-                }
-
                 foreach (RetrospectiveNote groupNote in noteGroup.Notes) {
                     if (groupNote.Id == noteId) {
                         sourceGroup = noteGroup;
                         note = groupNote;
+                        break;
                     }
                 }
 
-                if (sourceGroup != null && targetGroup != null) {
+                if (sourceGroup != null) {
                     break;
                 }
             }
 
-            foreach (RetrospectiveNote noGroupNote in this.Contents.Notes) {
-                if (noGroupNote.Id == noteId) {
-                    sourceGroup = null;
-                    note = noGroupNote;
-                }
-            }
-
-            // No need to do anything or can't do anything
-            if (sourceGroup == targetGroup || note == null) {
-                return false;
-            }
-
-            // Update state
-            if (sourceGroup == null) {
-                this.Contents.Notes.Remove(note);
-                targetGroup.Notes.Add(note);
-                note.GroupId = targetGroup.Id;
-            }
-            else if (targetGroup == null) {
-                sourceGroup.Notes.Remove(note);
-                this.Contents.Notes.Add(note);
-                this.Contents1.Notes.Remove(note);
-                this.Contents2.Notes.Remove(note);
-                note.GroupId = null;
-            }
-            else {
-                sourceGroup.Notes.Remove(note);
-                targetGroup.Notes.Add(note);
-                note.GroupId = targetGroup.Id;
-            }
-
+           
+            sourceGroup.Notes.Remove(note);
+            this.Contents.Notes.Add(note);
+            note.GroupId = null;
+            this.updateLaneStatus();
+            this.setLaneStatus();
             return true;
         }
 
-        internal async Task UpdateGroupAsync(int? groupId) {
-            //if (this.Payload == null) {
-            //    return;
-            //}
+        internal async Task UpdateGroupAsync(int groupId) {
+            if (this.Payload == null) {
+                this.StateHasChanged();
+                //return;
+            }
             if (Globals.SelectedNoteId == -1) {
+                this.StateHasChanged();
                 return;
             }
 
             int noteToMoveId = Globals.SelectedNoteId;//this.Payload.Id;
 
 
-            
-            
 
             if (!this.ExecuteNoteMove(noteId: noteToMoveId, newGroupId: groupId)) return;
 
@@ -223,13 +217,25 @@ namespace Return.Web.Components {
 
         private bool ExecuteNoteMove(int noteId, int? newGroupId) {
 
+            Console.Write("Note: ");
+            Console.Write(noteId);
+            Console.Write(" to Group: ");
+            if (newGroupId == null) {
+                Console.WriteLine("Null");
+                this.StateHasChanged();
+                return false;
+            }
+            else {
+                Console.WriteLine(newGroupId);
+            }
+            
 
             // Find the source group, target group and the note
             RetrospectiveNoteGroup sourceGroup = null, targetGroup = null;
             RetrospectiveNote note = null;
             int note_lane_id = 0;
 
-            foreach (RetrospectiveNoteGroup noteGroup in this.Contents.Groups) {
+            foreach (RetrospectiveNoteGroup noteGroup in Globals.ContentsStart.Groups) {
                 if (noteGroup.Id == newGroupId) {
                     targetGroup = noteGroup;
                 }
@@ -246,7 +252,7 @@ namespace Return.Web.Components {
                 }
             }
 
-            foreach (RetrospectiveNoteGroup noteGroup in this.Contents1.Groups) {
+            foreach (RetrospectiveNoteGroup noteGroup in Globals.ContentsStop.Groups) {
                 if (noteGroup.Id == newGroupId) {
                     targetGroup = noteGroup;
                 }
@@ -263,7 +269,7 @@ namespace Return.Web.Components {
                 }
             }
 
-            foreach (RetrospectiveNoteGroup noteGroup in this.Contents2.Groups) {
+            foreach (RetrospectiveNoteGroup noteGroup in Globals.ContentsContinue.Groups) {
                 if (noteGroup.Id == newGroupId) {
                     targetGroup = noteGroup;
                 }
@@ -280,15 +286,7 @@ namespace Return.Web.Components {
                 }
             }
 
-            foreach (RetrospectiveNote noGroupNote in this.Contents.Notes) {
-                if (noGroupNote.Id == noteId) {
-                    sourceGroup = null;
-                    note = noGroupNote;
-                    note_lane_id = 0;
-                }
-            }
-
-            foreach (RetrospectiveNote noGroupNote in this.Contents1.Notes) {
+            foreach (RetrospectiveNote noGroupNote in Globals.ContentsStart.Notes) {
                 if (noGroupNote.Id == noteId) {
                     sourceGroup = null;
                     note = noGroupNote;
@@ -296,7 +294,7 @@ namespace Return.Web.Components {
                 }
             }
 
-            foreach (RetrospectiveNote noGroupNote in this.Contents2.Notes) {
+            foreach (RetrospectiveNote noGroupNote in Globals.ContentsStop.Notes) {
                 if (noGroupNote.Id == noteId) {
                     sourceGroup = null;
                     note = noGroupNote;
@@ -304,41 +302,77 @@ namespace Return.Web.Components {
                 }
             }
 
+            foreach (RetrospectiveNote noGroupNote in Globals.ContentsContinue.Notes) {
+                if (noGroupNote.Id == noteId) {
+                    sourceGroup = null;
+                    note = noGroupNote;
+                    note_lane_id = 3;
+                }
+            }
 
             // No need to do anything or can't do anything
-            if (sourceGroup == targetGroup || note == null) {
+            if ( note == null || sourceGroup == targetGroup) { //sourceGroup == targetGroup || note == null ||
                 return false;
             }
 
+            Console.Write("Note: ");
+            Console.Write(noteId);
+            Console.Write(" From Group: ");
+            if (sourceGroup == null) {
+                Console.Write("Null");
+            }
+            else {
+                Console.Write(sourceGroup.Id);
+            }
+            Console.Write(" to Group: ");
+            if (targetGroup == null) {
+                Console.WriteLine("Null");
+            }
+            else {
+                Console.WriteLine(targetGroup.Id);
+            }
+
+            Console.Write("Original Lane: ");
+            Console.WriteLine(note_lane_id);
+
             // Update state
             if (sourceGroup == null) {
-                if (note_lane_id == 1) {
-                    this.Contents1.Notes.Remove(note);
+                if (note_lane_id == 2) {
+                    Globals.ContentsStop.Notes.Remove(note);
                 }
-                else if (note_lane_id == 2) {
-                    this.Contents2.Notes.Remove(note);
+                else if (note_lane_id == 3) {
+                    Globals.ContentsContinue.Notes.Remove(note);
                 }
                 else {
+                    Globals.ContentsStart.Notes.Remove(note);
+                }
+                if (this.Lane.Id == note_lane_id) {
                     this.Contents.Notes.Remove(note);
                 }
                 targetGroup.Notes.Add(note);
+                Console.Write("Add to target group: ");
+                Console.WriteLine(targetGroup.Id);
                 note.GroupId = targetGroup.Id;
-                
-            }
-            else if (targetGroup == null) {
-                sourceGroup.Notes.Remove(note);
-                this.Contents.Notes.Add(note);
-                this.Contents1.Notes.Remove(note);
-                this.Contents2.Notes.Remove(note);
-                note.GroupId = null;
+                this.setLaneStatus();
+
+            }else if (targetGroup == null) {
+                this.setLaneStatus();
+
             }
             else {
+                if (this.Lane.Id == note_lane_id) {
+                    this.Contents.Notes.Remove(note);
+                }
                 sourceGroup.Notes.Remove(note);
-                this.Contents1.Notes.Remove(note);
-                this.Contents2.Notes.Remove(note);
+                Console.Write("Remove from source group: ");
+                Console.WriteLine(sourceGroup.Id);
                 targetGroup.Notes.Add(note);
+                Console.Write("Add to target group: ");
+                Console.WriteLine(targetGroup.Id);
                 note.GroupId = targetGroup.Id;
+                this.setLaneStatus();
             }
+            this.setLaneStatus();
 
             return true;
         }
@@ -361,6 +395,10 @@ namespace Return.Web.Components {
 
         private async Task Refresh() {
             await this.Load();
+            this.StateHasChanged();
+        }
+
+        public void RenewLane() {
             this.StateHasChanged();
         }
 
@@ -392,6 +430,7 @@ namespace Return.Web.Components {
 
                 this.Contents.Notes.Insert(0, result);
                 this.LastAddedNote = result;
+                this.updateLaneStatus();
             }
             catch (Exception ex) {
                 this.ShowErrorMessage = true;
@@ -408,6 +447,7 @@ namespace Return.Web.Components {
                 RetrospectiveNoteGroup result = await this.Mediator.Send(new AddNoteGroupCommand(this.RetroId.StringId, this.Lane.Id));
 
                 this.Contents.Groups.Add(result);
+                this.updateLaneStatus();
             }
             catch (Exception ex) {
                 this.ShowErrorMessage = true;
@@ -431,15 +471,16 @@ namespace Return.Web.Components {
                 this.Contents.Notes.Insert(0, notification.Note);
 
                 this.StateHasChanged();
+                this.updateLaneStatus();
             });
         }
 
         public Task OnNoteLaneUpdated(NoteLaneUpdatedNotification note) {
-            if (this.RetroId?.StringId != note.RetroId ||
-                this.Lane?.Id != note.LaneId ||
-                this.Contents?.Groups.Exists(g => g.Id == note.GroupId) == true && this._skipFirstUpdate.GetValue()) {
-                return Task.CompletedTask;
-            }
+            //if (this.RetroId?.StringId != note.RetroId ||
+            //    this.Lane?.Id != note.LaneId ||
+            //    this.Contents?.Groups.Exists(g => g.Id == note.GroupId) == true && this._skipFirstUpdate.GetValue()) {
+            //    return Task.CompletedTask;
+            //}
 
             // Prevent deadlock
             this.InvokeAsync(this.Refresh);
@@ -447,17 +488,18 @@ namespace Return.Web.Components {
         }
 
         public Task OnNoteDeleted(NoteDeletedNotification notification) {
-            if (notification.RetroId != this.RetroId.StringId ||
-                notification.LaneId != this.Lane.Id) {
-                return Task.CompletedTask;
-            }
+            //if (notification.RetroId != this.RetroId.StringId ||
+            //    notification.LaneId != this.Lane.Id) {
+            //    return Task.CompletedTask;
+            //}
 
             this.InvokeAsync(() => {
                 int num = this.Contents.Notes.RemoveAll(n => n.Id == notification.NoteId);
-
+                this.updateLaneStatus();
                 if (num > 0) {
                     this.StateHasChanged();
                 }
+                
             });
 
             return Task.CompletedTask;
@@ -470,6 +512,7 @@ namespace Return.Web.Components {
 
         protected void OnNoteDeletedCallback(RetrospectiveNote note) {
             this.Contents.Notes.RemoveAll(n => n.Id == note.Id);
+            this.updateLaneStatus();
         }
 
         private readonly AutoResettingBoolean _skipFirstUpdate = new AutoResettingBoolean(false);
