@@ -50,6 +50,8 @@ namespace Return.Web.Components {
 
         public Guid UniqueId { get; } = Guid.NewGuid();
 
+        private System.Threading.Timer MyTimer { get; set; } 
+
         protected virtual void Dispose(bool disposing) {
             if (disposing) {
                 this.NoteAddedSubscription.Unsubscribe(this);
@@ -109,10 +111,13 @@ namespace Return.Web.Components {
             Globals.ContentsStart = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Start));
             Globals.ContentsStop = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Stop));
             Globals.ContentsContinue = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Continue));
-
-            this.setLaneStatus();
-
+            this.MyTimer = new System.Threading.Timer(this.CheckCondition, null, 100, 100);
         }
+
+        private void CheckCondition(object state) {
+            this.InvokeAsync(() => this.StateHasChanged());
+        }
+
 
         private void updateLaneStatus() {
             if ((int)KnownNoteLane.Stop == this.Lane?.Id) {
@@ -145,6 +150,7 @@ namespace Return.Web.Components {
             this.NoteMovedSubscription.Subscribe(this);
 
             base.OnInitialized();
+
         }
 
         internal async Task UpdateGroupDropAsync(int? groupId) {
