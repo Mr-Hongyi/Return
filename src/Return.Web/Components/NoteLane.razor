@@ -15,7 +15,7 @@
             return;
         }
 
-         @* Action section *@
+        @* Action section *@
         @if (this.RetrospectiveStatus?.IsEditingNotesAllowed == true)
         {
             @if (this.ShowErrorMessage)
@@ -24,9 +24,9 @@
             }
 
             <p class="has-text-centered">
-                <button type="button" 
-                        class="button is-link is-outlined" 
-                        @onclick="@AddNote" 
+                <button type="button"
+                        class="button is-link is-outlined"
+                        @onclick="@AddNote"
                         data-keypress-handler="CTRL+@this.Order" title="You can also press CTRL+@this.Order"
                         data-test-element-id="add-note-button">
                     <span class="icon">
@@ -43,12 +43,12 @@
         {
             @if (this.ShowErrorMessage)
             {
-                <ErrorMessage/>
+                <ErrorMessage />
             }
 
             <p class="has-text-centered">
-                <button type="button" 
-                        class="button is-link is-outlined" 
+                <button type="button"
+                        class="button is-link is-outlined"
                         @onclick="@AddNoteGroup"
                         data-keypress-handler="CTRL+@this.Order" title="You can also press CTRL+@this.Order"
                         data-test-element-id="add-note-group-button">
@@ -66,47 +66,135 @@
         @* Note groups section *@
         @if (DisplayGroupHeaders())
         {
-            @foreach (RetrospectiveNoteGroup noteGroup in this.Contents.Groups)
+            @if (this.Lane.Id == 1)
             {
-                <Revealable @key="@("ng" + noteGroup.Id)">
-                    <NoteGroup Data="@noteGroup" CanEdit="@IsGroupingAllowed()" />
-                </Revealable>
+                @foreach (RetrospectiveNoteGroup noteGroup in Globals.ContentsStart.Groups)
+                {
+                    <Revealable @key="@("ng" + noteGroup.Id)">
+                        <NoteGroup Data="@noteGroup" CanEdit="@IsGroupingAllowed()" />
+                    </Revealable>
+                }
+
+                @if (Globals.ContentsStart.Groups.Count == 0)
+                {
+                    <div class="box">
+                        <p>
+                            No notes have been grouped.
+                        </p>
+                    </div>
+                }
+            }
+            else if (this.Lane.Id == 2)
+            {
+                @foreach (RetrospectiveNoteGroup noteGroup in Globals.ContentsStop.Groups)
+                {
+                    <Revealable @key="@("ng" + noteGroup.Id)">
+                        <NoteGroup Data="@noteGroup" CanEdit="@IsGroupingAllowed()" />
+                    </Revealable>
+                }
+
+                @if (Globals.ContentsStop.Groups.Count == 0)
+                {
+                    <div class="box">
+                        <p>
+                            No notes have been grouped.
+                        </p>
+                    </div>
+                }
+            }
+            else
+            {
+                @foreach (RetrospectiveNoteGroup noteGroup in Globals.ContentsContinue.Groups)
+                {
+                    <Revealable @key="@("ng" + noteGroup.Id)">
+                        <NoteGroup Data="@noteGroup" CanEdit="@IsGroupingAllowed()" />
+                    </Revealable>
+                }
+
+                @if (Globals.ContentsContinue.Groups.Count == 0)
+                {
+                    <div class="box">
+                        <p>
+                            No notes have been grouped.
+                        </p>
+                    </div>
+                }
             }
 
-            @if (this.Contents.Groups.Count == 0)
-            {
-                <div class="box">
-                    <p>
-                        No notes have been grouped.
-                    </p>
-                </div>
-            }
         }
 
         @if (IsGroupingAllowed())
         {
-            <NoteUngroupDropzone/>
+            <NoteUngroupDropzone />
         }
 
         @* Notes section *@
-        @if (DisplayGroupHeaders() == false || IsGroupingAllowed() || this.Contents.Notes.Count > 0)
+        @if (this.Lane.Id == 1)
         {
-            @foreach (RetrospectiveNote note in this.Contents.Notes)
+            @if (DisplayGroupHeaders() == false || IsGroupingAllowed() || Globals.ContentsStart.Notes.Count > 0)
             {
-                <Revealable @key="@("n" + note.Id)">
-                    <Note Data="@note" OnDeleted="@(r => this.OnNoteDeletedCallback(r))" IsLastAddedNote="@(note == this.LastAddedNote)" />
-                </Revealable>
+                @foreach (RetrospectiveNote note in Globals.ContentsStart.Notes)
+                {
+                    <Revealable @key="@("n" + note.Id)">
+                        <Note Data="@note" OnDeleted="@(r => this.OnNoteDeletedCallback(r))" IsLastAddedNote="@(note == this.LastAddedNote)" />
+                    </Revealable>
+                }
             }
-        } 
-    
-        @if (this.Contents.Notes.Count == 0 && this.Contents.Groups.Count == 0)
-        {
-            <div class="box">
-                <p>
-                    It is empty here.
-                </p>
-            </div>
+
+            @if (Globals.ContentsStart.Notes.Count == 0 && Globals.ContentsStart.Groups.Count == 0)
+            {
+                <div class="box">
+                    <p>
+                        It is empty here.
+                    </p>
+                </div>
+            }
         }
+        else if (this.Lane.Id == 2)
+        {
+            @if (DisplayGroupHeaders() == false || IsGroupingAllowed() || Globals.ContentsStop.Notes.Count > 0)
+            {
+                @foreach (RetrospectiveNote note in Globals.ContentsStop.Notes)
+                {
+                    <Revealable @key="@("n" + note.Id)">
+                        <Note Data="@note" OnDeleted="@(r => this.OnNoteDeletedCallback(r))" IsLastAddedNote="@(note == this.LastAddedNote)" />
+                    </Revealable>
+                }
+            }
+
+            @if (Globals.ContentsStop.Notes.Count == 0 && Globals.ContentsStop.Groups.Count == 0)
+            {
+                <div class="box">
+                    <p>
+                        It is empty here.
+                    </p>
+                </div>
+            }
+        }
+        else
+        {
+            @if (DisplayGroupHeaders() == false || IsGroupingAllowed() || Globals.ContentsContinue.Notes.Count > 0)
+            {
+                @foreach (RetrospectiveNote note in Globals.ContentsContinue.Notes)
+                {
+                    <Revealable @key="@("n" + note.Id)">
+                        <Note Data="@note" OnDeleted="@(r => this.OnNoteDeletedCallback(r))" IsLastAddedNote="@(note == this.LastAddedNote)" />
+                    </Revealable>
+                }
+            }
+
+            @if (Globals.ContentsContinue.Notes.Count == 0 && Globals.ContentsContinue.Groups.Count == 0)
+            {
+                <div class="box">
+                    <p>
+                        It is empty here.
+                    </p>
+                </div>
+            }
+
+        }
+
+
 
 
     </CascadingValue>

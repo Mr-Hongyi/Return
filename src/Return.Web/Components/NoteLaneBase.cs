@@ -111,7 +111,7 @@ namespace Return.Web.Components {
             Globals.ContentsStart = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Start));
             Globals.ContentsStop = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Stop));
             Globals.ContentsContinue = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Continue));
-            this.MyTimer = new System.Threading.Timer(this.CheckCondition, null, 100, 100);
+            this.MyTimer = new System.Threading.Timer(this.CheckCondition, null, 10, 10);
         }
 
         private void CheckCondition(object state) {
@@ -129,6 +129,7 @@ namespace Return.Web.Components {
             else {
                  Globals.ContentsContinue = this.Contents;
             }
+            this.StateHasChanged();
         }
 
         private void setLaneStatus() {
@@ -141,6 +142,7 @@ namespace Return.Web.Components {
             else {
                 this.Contents = Globals.ContentsContinue;
             }
+            this.StateHasChanged();
         }
 
         protected override void OnInitialized() {
@@ -352,7 +354,7 @@ namespace Return.Web.Components {
                 else {
                     Globals.ContentsStart.Notes.Remove(note);
                 }
-                if (this.Lane.Id == note_lane_id) {
+                if (note_lane_id == this.Lane.Id) {
                     this.Contents.Notes.Remove(note);
                 }
                 targetGroup.Notes.Add(note);
@@ -366,9 +368,6 @@ namespace Return.Web.Components {
 
             }
             else {
-                if (this.Lane.Id == note_lane_id) {
-                    this.Contents.Notes.Remove(note);
-                }
                 sourceGroup.Notes.Remove(note);
                 Console.Write("Remove from source group: ");
                 Console.WriteLine(sourceGroup.Id);
