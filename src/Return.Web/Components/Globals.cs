@@ -4,9 +4,40 @@ namespace Return.Web.Components {
     public static class Globals {
 
         private static int _selectedId;
+        private static bool _updateBool;
+        private static bool _groupingBool;
+        private static bool _exitingBool = false;
         private static RetrospectiveLaneContent _contentsStart = default!;
         private static RetrospectiveLaneContent _contentsStop = default!;
         private static RetrospectiveLaneContent _contentsContinue = default!;
+
+        public static bool Exiting {
+            get {
+                return _exitingBool;
+            }
+            set {
+                _exitingBool = value;
+            }
+        }
+
+
+        public static bool UpdateBool {
+            get {
+                return _updateBool;
+            }
+            set {
+                _updateBool = value;
+            }
+        }
+
+        public static bool Grouping {
+            get {
+                return _groupingBool;
+            }
+            set {
+                _groupingBool = value;
+            }
+        }
 
 
         public static RetrospectiveLaneContent ContentsStart {

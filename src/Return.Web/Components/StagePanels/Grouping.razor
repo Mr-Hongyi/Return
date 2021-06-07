@@ -37,5 +37,9 @@
 @code {
     private InitiateVotingStageCommand Model { get; } = new InitiateVotingStageCommand();
 
-    private Task OnInvokeContinueToNextStage(InitiateVotingStageCommand command) => this.Mediator.Send(this.Model);
+    private Task OnInvokeContinueToNextStage(InitiateVotingStageCommand command) {
+        Globals.Grouping = false;
+        Globals.Exiting = true;
+        return this.Mediator.Send(this.Model);
+    }
 }

@@ -115,7 +115,12 @@ namespace Return.Web.Components {
         }
 
         private void CheckCondition(object state) {
-            this.InvokeAsync(() => this.StateHasChanged());
+            if (Globals.Grouping) {
+                this.InvokeAsync(() => this.setLaneStatus());
+                this.InvokeAsync(() => this.StateHasChanged());
+            }
+                //Globals.UpdateBool = false;
+            
         }
 
 
@@ -129,6 +134,7 @@ namespace Return.Web.Components {
             else {
                  Globals.ContentsContinue = this.Contents;
             }
+            Globals.UpdateBool = true;
             this.StateHasChanged();
         }
 
@@ -142,6 +148,7 @@ namespace Return.Web.Components {
             else {
                 this.Contents = Globals.ContentsContinue;
             }
+            Globals.UpdateBool = true;
             this.StateHasChanged();
         }
 

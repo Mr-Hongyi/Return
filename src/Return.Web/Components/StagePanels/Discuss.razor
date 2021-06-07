@@ -37,6 +37,8 @@
             return Task.CompletedTask;  // Shouldn't happen, but ignore
         }
 
+        Globals.Grouping = true;
+
         return this.Mediator.Send(new InitiateGroupingStageCommand
         {
             RetroId = this.RetroId.StringId
