@@ -1,10 +1,10 @@
 ﻿using System;
 namespace Return.Web.Components {
     using Application.RetrospectiveLanes.Queries;
+    using System.Collections.Generic;
     public static class Globals {
 
         private static int _selectedId;
-        private static bool _updateBool;
         private static bool _groupingBool;
         private static bool _exitingBool = false;
         private static RetrospectiveLaneContent _contentsStart = default!;
@@ -17,16 +17,6 @@ namespace Return.Web.Components {
             }
             set {
                 _exitingBool = value;
-            }
-        }
-
-
-        public static bool UpdateBool {
-            get {
-                return _updateBool;
-            }
-            set {
-                _updateBool = value;
             }
         }
 

@@ -111,7 +111,7 @@ namespace Return.Web.Components {
             Globals.ContentsStart = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Start));
             Globals.ContentsStop = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Stop));
             Globals.ContentsContinue = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Continue));
-            this.MyTimer = new System.Threading.Timer(this.CheckCondition, null, 10, 10);
+            this.MyTimer = new System.Threading.Timer(this.CheckCondition, null, 100, 100);
         }
 
         private void CheckCondition(object state) {
@@ -134,7 +134,6 @@ namespace Return.Web.Components {
             else {
                  Globals.ContentsContinue = this.Contents;
             }
-            Globals.UpdateBool = true;
             this.StateHasChanged();
         }
 
@@ -148,7 +147,6 @@ namespace Return.Web.Components {
             else {
                 this.Contents = Globals.ContentsContinue;
             }
-            Globals.UpdateBool = true;
             this.StateHasChanged();
         }
 
@@ -385,7 +383,6 @@ namespace Return.Web.Components {
                 this.setLaneStatus();
             }
             this.setLaneStatus();
-
             return true;
         }
 
@@ -410,9 +407,6 @@ namespace Return.Web.Components {
             this.StateHasChanged();
         }
 
-        public void RenewLane() {
-            this.StateHasChanged();
-        }
 
         protected override void OnParametersSet() {
             base.OnParametersSet();
@@ -463,7 +457,6 @@ namespace Return.Web.Components {
             }
             catch (Exception ex) {
                 this.ShowErrorMessage = true;
-
                 this.Logger.LogError(ex, $"Unable to add note group for {this.RetroId} in lane {this.Lane?.Id}");
             }
         }
