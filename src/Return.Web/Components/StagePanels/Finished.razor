@@ -1,6 +1,7 @@
 @using Return.Application.Retrospectives.Queries.GetRetrospectiveStatus
 @using Application.Common.Models;
 @using Return.Web.Pages
+@using System.Threading.Tasks;
 <RetrospectiveRolePanel>
     <Facilitator>
 
@@ -33,24 +34,55 @@
 
         </p>
 
-        <ul>
-            @foreach (var Action in Finished.ActionList)
-            {
-                <li><b>@Action</b></li>
-            }
-        </ul>
 
 
-        
+        @foreach (var Action in Finished.ActionList)
+        {
+        <div class="box note"
+                data-test-element-id="note"
+                style="background-color: red">
+                
+            <div class="note__delete-icon"
+                 data-keypress-handler="CTRL+Delete" title="You can also press CTRL+Delete when you have the textarea in focus"
+                 @onclick="@(()=>DeleteNote(Action))">
+                <i class="fas fa-trash"></i>
+            </div>
+                    
+
+                    
+                <p class="note__content">
+                    @Action
+                </p>
+                
+        </div>
+        }
+  
+
+
+        <p>
+
+        </p>
+
+
+
     </Facilitator>
     <Participant>
 
-        <ul>
-            @foreach (var Action in Finished.ActionList)
-            {
-                <li><b>@Action</b></li>
-            }
-        </ul>
+
+        @foreach (var Action in Finished.ActionList)
+        {
+        <div class="box note"
+             data-test-element-id="note"
+             style="background-color: red">
+
+
+            <p class="note__content">
+                @Action
+            </p>
+
+        </div>
+        }
+
 
         <p>
 
@@ -90,12 +122,28 @@
 
     public String TextData;
     public static List<string> ActionList = new List<string>();
+    private System.Threading.Timer MyTimer { get; set; }
+
+    protected override void OnInitialized() {
+        this.MyTimer = new System.Threading.Timer(this.CheckCondition, null, 100, 100);
+    }
+
+    private void CheckCondition(object state) {
+        this.InvokeAsync(() => this.StateHasChanged());
+
+    }
 
     public void AddNote()
     {
         Finished.ActionList.Add(this.TextData);
         this.TextData = "";
-        this.StateHasChanged();
+        //this.StateHasChanged();
+    }
+
+    public void DeleteNote(String input) {
+        Finished.ActionList.Remove(input);
+        this.TextData = "";
+        //this.StateHasChanged();
     }
 
 }

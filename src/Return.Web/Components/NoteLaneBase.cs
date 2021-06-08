@@ -111,13 +111,18 @@ namespace Return.Web.Components {
             Globals.ContentsStart = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Start));
             Globals.ContentsStop = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Stop));
             Globals.ContentsContinue = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Continue));
-            this.MyTimer = new System.Threading.Timer(this.CheckCondition, null, 100, 100);
+
+            this.MyTimer = new System.Threading.Timer(this.CheckCondition, null, 250, 500);
         }
 
         private void CheckCondition(object state) {
             if (Globals.Grouping) {
                 this.InvokeAsync(() => this.setLaneStatus());
                 this.InvokeAsync(() => this.StateHasChanged());
+            }
+
+            if (Globals.Exiting) {
+                this.MyTimer.Dispose();
             }
                 //Globals.UpdateBool = false;
             
