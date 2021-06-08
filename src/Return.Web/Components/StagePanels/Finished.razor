@@ -7,7 +7,11 @@
 
         <textarea class="textarea note__content is-small has-fixed-size"
                   rows="3"
-                  style="background-color:white;"
+                  style="background-color: white;
+                         color: black;
+                         text-shadow: none;
+                         font-size: 15px;
+                         font-weight: bold;"
                   placeholder="Enter your action note here"
                   @bind-value="@TextData"
                   @bind-value:event="oninput"></textarea>
@@ -25,7 +29,7 @@
                     <span class="fas fa-plus-square"></span>
                 </span>
                 <span>
-                    Create a note
+                    Create an Action
                 </span>
             </button>
         </p>
@@ -40,9 +44,9 @@
         {
         <div class="box note"
                 data-test-element-id="note"
-                style="background-color: red">
+                style="background-color: white">
                 
-            <div class="note__delete-icon"
+            <div class="note__delete-icon-black"
                  data-keypress-handler="CTRL+Delete" title="You can also press CTRL+Delete when you have the textarea in focus"
                  @onclick="@(()=>DeleteNote(Action))">
                 <i class="fas fa-trash"></i>
@@ -50,9 +54,10 @@
                     
 
                     
-                <p class="note__content">
-                    @Action
-                </p>
+                <p class="note__content"
+                   style="color:black;text-shadow:none">
+                    <b>@Action</b>
+</p>
                 
         </div>
         }
@@ -73,11 +78,12 @@
         {
         <div class="box note"
              data-test-element-id="note"
-             style="background-color: red">
+             style="background-color:white">
 
 
-            <p class="note__content">
-                @Action
+            <p class="note__content"
+               style="color:black;text-shadow:none">
+                <b>@Action</b>
             </p>
 
         </div>

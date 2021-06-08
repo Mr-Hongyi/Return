@@ -30,7 +30,9 @@
         <textarea class="textarea note__content is-small has-fixed-size"
                   data-keypress-handler-id="note-@this.Data.Id"
                   rows="1"
-                  placeholder="Enter your text here" 
+                  placeholder="Enter your text here"
+                  style="font-size: 15px;
+                         font-weight: bold;"
                   @bind-value="@TextData" 
                   @bind-value:event="oninput"
                   @ref="this.TextBoxReference"></textarea>

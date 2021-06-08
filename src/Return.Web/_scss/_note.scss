@@ -6,8 +6,9 @@
 
 .note {
     padding: 0.5rem;
-    font-size: $size-7;
+    font-size: 15px;
     filter: grayscale(25%);
+    font-weight: bold;
 
     &:focus-within,
     &--editable:hover {
@@ -63,7 +64,21 @@
         z-index: 1;
 
         &:hover {
-            transform: scale(1.1);
+            transform: scale(0.5);
+        }
+    }
+
+    &__delete-icon-black {
+        color: black;
+        display: inline-block;
+        position: absolute;
+        top: 1px;
+        right: 2px;
+        cursor: pointer;
+        z-index: 1;
+
+        &:hover {
+            transform: scale(0.5);
         }
     }
 }
