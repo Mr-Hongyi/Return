@@ -47,18 +47,18 @@ namespace Return.Application.App.Commands.SeedBaseData {
 
             // Seed note lanes
             this._returnDbContext.PredefinedParticipantColors.AddRange(
-                new PredefinedParticipantColor("Driver red", Color.Red),
+                new PredefinedParticipantColor("Driver red", Color.OrangeRed),
                 new PredefinedParticipantColor("Analytic blue", Color.Blue),
-                new PredefinedParticipantColor("Amiable green", Color.Green),
-                new PredefinedParticipantColor("Expressive yellow", Color.Yellow),
+                new PredefinedParticipantColor("Amiable green", Color.ForestGreen),
+                //new PredefinedParticipantColor("Expressive yellow", Color.Yellow),
                 new PredefinedParticipantColor("Juicy orange", Color.DarkOrange),
-                new PredefinedParticipantColor("Participator purple", Color.Purple),
+                new PredefinedParticipantColor("Participator purple", Color.DarkOrchid),
                 new PredefinedParticipantColor("Boring blue-gray", Color.DarkSlateGray),
                 new PredefinedParticipantColor("Adapting aquatic", Color.DodgerBlue),
-                new PredefinedParticipantColor("Fresh lime", Color.Lime),
-                new PredefinedParticipantColor("Tomàto tomató", Color.Tomato),
-                new PredefinedParticipantColor("Goldie the bird", Color.Gold),
-                new PredefinedParticipantColor("Farmer wheat", Color.Wheat)
+                new PredefinedParticipantColor("Fresh lime", Color.LimeGreen),
+                new PredefinedParticipantColor("Tomàto tomató", Color.IndianRed),
+                new PredefinedParticipantColor("Goldie the bird", Color.Goldenrod),
+                new PredefinedParticipantColor("Farmer wheat", Color.Peru)
             );
         }
     }

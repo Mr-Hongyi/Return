@@ -25,7 +25,7 @@
         {
             ParticipantInfo participant = this.Participants.Participants[0];
 
-            <text>@RenderParticipant(participant) has already joined the retrospective</text>
+            <text><b>@RenderParticipant(participant)</b> has already joined the retrospective</text>
         }
         else
         {
@@ -37,7 +37,7 @@
                 @foreach (ParticipantInfo participant in this.Participants.Participants)
                 {
                     <li class="@(participant.Name == this.CurrentParticipant.Name ? "online-list__item--is-self" : null)">
-                        @RenderParticipant(participant)
+                        <b>@RenderParticipant(participant)</b>
                     </li>
                 }
             </ul>
