@@ -19,11 +19,12 @@ namespace Return.Application.NoteGroups.Commands {
     using Notifications.NoteLaneUpdated;
     using Services;
 
-    public sealed class AddNoteGroupCommandHandler : IRequestHandler<AddNoteGroupCommand, RetrospectiveNoteGroup> {
+    public sealed class AddNoteGroupCommandHandler : IRequestHandler<AddNoteGroupCommand, RetrospectiveNoteGroup?> {
         private readonly IReturnDbContextFactory _returnDbContextFactory;
         private readonly ISecurityValidator _securityValidator;
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
+        private bool _addBool { get; set; }
 
         public AddNoteGroupCommandHandler(IReturnDbContextFactory returnDbContextFactory, ISecurityValidator securityValidator, IMapper mapper, IMediator mediator) {
             this._returnDbContextFactory = returnDbContextFactory;
@@ -32,7 +33,7 @@ namespace Return.Application.NoteGroups.Commands {
             this._mediator = mediator;
         }
 
-        public async Task<RetrospectiveNoteGroup> Handle(AddNoteGroupCommand request, CancellationToken cancellationToken) {
+        public async Task<RetrospectiveNoteGroup?> Handle(AddNoteGroupCommand request, CancellationToken cancellationToken) {
             if (request == null) throw new ArgumentNullException(nameof(request));
             using IReturnDbContext dbContext = this._returnDbContextFactory.CreateForEditContext();
 
@@ -56,15 +57,30 @@ namespace Return.Application.NoteGroups.Commands {
 
             await this._securityValidator.EnsureAddOrUpdate(retrospective, noteGroup);
 
-            dbContext.NoteGroups.Add(noteGroup);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            this._addBool = true;
+            foreach (NoteGroup groupNote in dbContext.NoteGroups) {
+                if (noteGroup.Id == groupNote.Id) {
+                    this._addBool = false;
+                    break;
+                }
+            }
 
-            // Map it and broadcast
-            var mappedGroup = this._mapper.Map<RetrospectiveNoteGroup>(noteGroup);
+            if (!this._addBool) {
+                return null;
+            }
+            else
+            {
 
-            await this._mediator.Publish(new NoteLaneUpdatedNotification(request.RetroId, request.LaneId, mappedGroup.Id), cancellationToken);
+                dbContext.NoteGroups.Add(noteGroup);
+                await dbContext.SaveChangesAsync(cancellationToken);
 
-            return mappedGroup;
+                // Map it and broadcast
+                var mappedGroup = this._mapper.Map<RetrospectiveNoteGroup>(noteGroup);
+
+                await this._mediator.Publish(new NoteLaneUpdatedNotification(request.RetroId, request.LaneId, mappedGroup.Id), cancellationToken);
+
+                return mappedGroup;
+            }
         }
     }
 }

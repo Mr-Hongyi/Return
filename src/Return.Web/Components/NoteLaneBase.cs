@@ -112,12 +112,12 @@ namespace Return.Web.Components {
             Globals.ContentsStop = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Stop));
             Globals.ContentsContinue = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Continue));
 
-            this.MyTimer = new System.Threading.Timer(this.CheckCondition, null, 250, 500);
+            this.MyTimer = new System.Threading.Timer(this.CheckCondition, null, 50, 100);
         }
 
         private void CheckCondition(object state) {
             if (Globals.Grouping) {
-                this.InvokeAsync(() => this.setLaneStatus());
+                //this.InvokeAsync(() => this.setLaneStatus());
                 this.InvokeAsync(() => this.StateHasChanged());
             }
 
@@ -235,16 +235,9 @@ namespace Return.Web.Components {
 
         private bool ExecuteNoteMove(int noteId, int? newGroupId) {
 
-            Console.Write("Note: ");
-            Console.Write(noteId);
-            Console.Write(" to Group: ");
             if (newGroupId == null) {
-                Console.WriteLine("Null");
                 this.StateHasChanged();
                 return false;
-            }
-            else {
-                Console.WriteLine(newGroupId);
             }
             
 
@@ -333,25 +326,6 @@ namespace Return.Web.Components {
                 return false;
             }
 
-            Console.Write("Note: ");
-            Console.Write(noteId);
-            Console.Write(" From Group: ");
-            if (sourceGroup == null) {
-                Console.Write("Null");
-            }
-            else {
-                Console.Write(sourceGroup.Id);
-            }
-            Console.Write(" to Group: ");
-            if (targetGroup == null) {
-                Console.WriteLine("Null");
-            }
-            else {
-                Console.WriteLine(targetGroup.Id);
-            }
-
-            Console.Write("Original Lane: ");
-            Console.WriteLine(note_lane_id);
 
             // Update state
             if (sourceGroup == null) {
@@ -368,8 +342,6 @@ namespace Return.Web.Components {
                     this.Contents.Notes.Remove(note);
                 }
                 targetGroup.Notes.Add(note);
-                Console.Write("Add to target group: ");
-                Console.WriteLine(targetGroup.Id);
                 note.GroupId = targetGroup.Id;
                 this.setLaneStatus();
 
@@ -379,11 +351,7 @@ namespace Return.Web.Components {
             }
             else {
                 sourceGroup.Notes.Remove(note);
-                Console.Write("Remove from source group: ");
-                Console.WriteLine(sourceGroup.Id);
                 targetGroup.Notes.Add(note);
-                Console.Write("Add to target group: ");
-                Console.WriteLine(targetGroup.Id);
                 note.GroupId = targetGroup.Id;
                 this.setLaneStatus();
             }
@@ -456,9 +424,13 @@ namespace Return.Web.Components {
                 this._skipFirstUpdate.Set();
 
                 RetrospectiveNoteGroup result = await this.Mediator.Send(new AddNoteGroupCommand(this.RetroId.StringId, this.Lane.Id));
-
-                this.Contents.Groups.Add(result);
-                this.updateLaneStatus();
+                if (result == null) {
+                    return;
+                }
+                else {
+                    this.Contents.Groups.Add(result);
+                    this.updateLaneStatus();
+                }
             }
             catch (Exception ex) {
                 this.ShowErrorMessage = true;
@@ -479,9 +451,9 @@ namespace Return.Web.Components {
 
             return this.InvokeAsync(() => {
                 this.Contents.Notes.Insert(0, notification.Note);
-
-                this.StateHasChanged();
                 this.updateLaneStatus();
+                //this.StateHasChanged();
+                
             });
         }
 

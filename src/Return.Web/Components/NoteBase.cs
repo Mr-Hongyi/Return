@@ -127,8 +127,6 @@ namespace Return.Web.Components {
         protected bool CanView() => this.RetrospectiveStatus.IsViewingOtherNotesAllowed || this.Data.IsOwnedByCurrentUser;
 
         protected void HandleDragStart(RetrospectiveNote selectedNote) {
-            Console.Write("Drag Note: ");
-            Console.WriteLine(selectedNote.Id);
             Globals.SelectedNoteId = selectedNote.Id;
             this.Container.Payload = selectedNote; }
         protected void HandleDragEnd() => this.Container.Payload = null;
