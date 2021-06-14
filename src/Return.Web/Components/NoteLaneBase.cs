@@ -112,19 +112,17 @@ namespace Return.Web.Components {
             Globals.ContentsStop = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Stop));
             Globals.ContentsContinue = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Continue));
 
-            this.MyTimer = new System.Threading.Timer(this.CheckCondition, null, 50, 100);
+            this.MyTimer = new System.Threading.Timer(this.CheckCondition, null, 125, 250);
         }
 
         private void CheckCondition(object state) {
             if (Globals.Grouping) {
-                //this.InvokeAsync(() => this.setLaneStatus());
                 this.InvokeAsync(() => this.StateHasChanged());
             }
 
             if (Globals.Exiting) {
                 this.MyTimer.Dispose();
             }
-                //Globals.UpdateBool = false;
             
         }
 
@@ -166,14 +164,11 @@ namespace Return.Web.Components {
         }
 
         internal async Task UpdateGroupDropAsync(int? groupId) {
-            if (this.Payload == null) {
-                this.StateHasChanged();
-                return;
-            }
+
             if (Globals.SelectedNoteId == -1) {
-                this.StateHasChanged();
                 return;
             }
+
             int noteToMoveId = this.Payload.Id;
 
             if (!this.ExecuteNoteDrop(noteId: noteToMoveId)) return;
@@ -197,33 +192,24 @@ namespace Return.Web.Components {
                     }
                 }
 
-                if (sourceGroup != null) {
-                    break;
-                }
+                if (sourceGroup != null) break;
+
             }
 
-           
             sourceGroup.Notes.Remove(note);
             this.Contents.Notes.Add(note);
             note.GroupId = null;
             this.updateLaneStatus();
-            this.setLaneStatus();
             return true;
         }
 
         internal async Task UpdateGroupAsync(int groupId) {
-            if (this.Payload == null) {
-                this.StateHasChanged();
-                //return;
-            }
+
             if (Globals.SelectedNoteId == -1) {
-                this.StateHasChanged();
                 return;
             }
 
-            int noteToMoveId = Globals.SelectedNoteId;//this.Payload.Id;
-
-
+            int noteToMoveId = Globals.SelectedNoteId;
 
             if (!this.ExecuteNoteMove(noteId: noteToMoveId, newGroupId: groupId)) return;
 
@@ -236,7 +222,6 @@ namespace Return.Web.Components {
         private bool ExecuteNoteMove(int noteId, int? newGroupId) {
 
             if (newGroupId == null) {
-                this.StateHasChanged();
                 return false;
             }
             
@@ -247,6 +232,11 @@ namespace Return.Web.Components {
             int note_lane_id = 0;
 
             foreach (RetrospectiveNoteGroup noteGroup in Globals.ContentsStart.Groups) {
+
+                if (sourceGroup != null && targetGroup != null) {
+                    break;
+                }
+
                 if (noteGroup.Id == newGroupId) {
                     targetGroup = noteGroup;
                 }
@@ -258,12 +248,15 @@ namespace Return.Web.Components {
                     }
                 }
 
-                if (sourceGroup != null && targetGroup != null) {
-                    break;
-                }
+                
             }
 
             foreach (RetrospectiveNoteGroup noteGroup in Globals.ContentsStop.Groups) {
+
+                if (sourceGroup != null && targetGroup != null) {
+                    break;
+                }
+
                 if (noteGroup.Id == newGroupId) {
                     targetGroup = noteGroup;
                 }
@@ -275,12 +268,14 @@ namespace Return.Web.Components {
                     }
                 }
 
-                if (sourceGroup != null && targetGroup != null) {
-                    break;
-                }
             }
 
             foreach (RetrospectiveNoteGroup noteGroup in Globals.ContentsContinue.Groups) {
+
+                if (sourceGroup != null && targetGroup != null) {
+                    break;
+                }
+
                 if (noteGroup.Id == newGroupId) {
                     targetGroup = noteGroup;
                 }
@@ -292,12 +287,11 @@ namespace Return.Web.Components {
                     }
                 }
 
-                if (sourceGroup != null && targetGroup != null) {
-                    break;
-                }
+                
             }
 
             foreach (RetrospectiveNote noGroupNote in Globals.ContentsStart.Notes) {
+                if (note != null) break;
                 if (noGroupNote.Id == noteId) {
                     sourceGroup = null;
                     note = noGroupNote;
@@ -306,6 +300,7 @@ namespace Return.Web.Components {
             }
 
             foreach (RetrospectiveNote noGroupNote in Globals.ContentsStop.Notes) {
+                if (note != null) break;
                 if (noGroupNote.Id == noteId) {
                     sourceGroup = null;
                     note = noGroupNote;
@@ -314,6 +309,7 @@ namespace Return.Web.Components {
             }
 
             foreach (RetrospectiveNote noGroupNote in Globals.ContentsContinue.Notes) {
+                if (note != null) break;
                 if (noGroupNote.Id == noteId) {
                     sourceGroup = null;
                     note = noGroupNote;
@@ -345,11 +341,7 @@ namespace Return.Web.Components {
                 note.GroupId = targetGroup.Id;
                 this.setLaneStatus();
 
-            }else if (targetGroup == null) {
-                this.setLaneStatus();
-
-            }
-            else {
+            }else {
                 sourceGroup.Notes.Remove(note);
                 targetGroup.Notes.Add(note);
                 note.GroupId = targetGroup.Id;
@@ -360,11 +352,6 @@ namespace Return.Web.Components {
         }
 
         public Task OnNoteMoved(NoteMovedNotification notification) {
-            // Filter out irrelevant notifications
-            //if (notification.LaneId != this.Lane.Id ||
-            //    notification.RetroId != this.RetroId.StringId) {
-            //    return Task.CompletedTask;
-            //}
 
             this.InvokeAsync(() => {
                 if (this.ExecuteNoteMove(notification.NoteId, notification.GroupId)) {
@@ -452,28 +439,17 @@ namespace Return.Web.Components {
             return this.InvokeAsync(() => {
                 this.Contents.Notes.Insert(0, notification.Note);
                 this.updateLaneStatus();
-                //this.StateHasChanged();
                 
             });
         }
 
         public Task OnNoteLaneUpdated(NoteLaneUpdatedNotification note) {
-            //if (this.RetroId?.StringId != note.RetroId ||
-            //    this.Lane?.Id != note.LaneId ||
-            //    this.Contents?.Groups.Exists(g => g.Id == note.GroupId) == true && this._skipFirstUpdate.GetValue()) {
-            //    return Task.CompletedTask;
-            //}
-
             // Prevent deadlock
             this.InvokeAsync(this.Refresh);
             return Task.CompletedTask;
         }
 
         public Task OnNoteDeleted(NoteDeletedNotification notification) {
-            //if (notification.RetroId != this.RetroId.StringId ||
-            //    notification.LaneId != this.Lane.Id) {
-            //    return Task.CompletedTask;
-            //}
 
             this.InvokeAsync(() => {
                 int num = this.Contents.Notes.RemoveAll(n => n.Id == notification.NoteId);

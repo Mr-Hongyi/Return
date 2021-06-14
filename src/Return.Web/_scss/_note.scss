@@ -56,29 +56,31 @@
 
     &__delete-icon {
         color: white;
+        width: 2px;
         display: inline-block;
         position: absolute;
         top: 1px;
-        right: 2px;
+        right: 50px;
         cursor: pointer;
         z-index: 1;
 
         &:hover {
-            transform: scale(0.5);
+            transform: scale(1.2);
         }
     }
 
     &__delete-icon-black {
         color: black;
+        width: 2px;
         display: inline-block;
         position: absolute;
         top: 1px;
-        right: 2px;
+        right: 50px;
         cursor: pointer;
         z-index: 1;
 
         &:hover {
-            transform: scale(0.5);
+            transform: scale(1.2);
         }
     }
 }
