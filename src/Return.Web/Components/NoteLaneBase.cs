@@ -383,9 +383,9 @@ namespace Return.Web.Components {
         /// but isn't the words. We need to reveal the notes by re-issuing a renew.
         /// </summary>
         private void HandleNoteChange() {
-            if (this._isShowingNotes != null && (this.RetrospectiveStatus.IsViewingOtherNotesAllowed != this._isShowingNotes)) {
+            //if (this._isShowingNotes != null && (this.RetrospectiveStatus.IsViewingOtherNotesAllowed != this._isShowingNotes)) {
                 this.InvokeAsync(this.Refresh);
-            }
+            //}
         }
 
         protected async Task AddNote() {
@@ -438,6 +438,8 @@ namespace Return.Web.Components {
 
             return this.InvokeAsync(() => {
                 this.Contents.Notes.Insert(0, notification.Note);
+
+                this.StateHasChanged();
                 this.updateLaneStatus();
                 
             });
@@ -453,7 +455,7 @@ namespace Return.Web.Components {
 
             this.InvokeAsync(() => {
                 int num = this.Contents.Notes.RemoveAll(n => n.Id == notification.NoteId);
-                this.updateLaneStatus();
+                //this.updateLaneStatus();
                 if (num > 0) {
                     this.StateHasChanged();
                 }
@@ -470,7 +472,7 @@ namespace Return.Web.Components {
 
         protected void OnNoteDeletedCallback(RetrospectiveNote note) {
             this.Contents.Notes.RemoveAll(n => n.Id == note.Id);
-            this.updateLaneStatus();
+            //this.updateLaneStatus();
         }
 
         private readonly AutoResettingBoolean _skipFirstUpdate = new AutoResettingBoolean(false);

@@ -61,7 +61,7 @@ namespace Return.Application.Notes.Commands.AddNote {
                 Lane = noteLane,
                 Participant = await returnDbContext.Participants.FindAsync(currentParticipant.Id),
                 ParticipantId = currentParticipant.Id,
-                Text = String.Empty
+                Text = currentParticipant.Name + ": "
             };
 
             await this._securityValidator.EnsureOperation(retrospective, SecurityOperation.AddOrUpdate, note);
