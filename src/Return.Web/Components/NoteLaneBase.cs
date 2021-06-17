@@ -112,7 +112,7 @@ namespace Return.Web.Components {
             Globals.ContentsStop = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Stop));
             Globals.ContentsContinue = await this.Mediator.Send(new GetRetrospectiveLaneContentQuery(this.RetroId.StringId, (int)KnownNoteLane.Continue));
 
-            this.MyTimer = new System.Threading.Timer(this.CheckCondition, null, 125, 250);
+            this.MyTimer = new System.Threading.Timer(this.CheckCondition, null, 100, 200);
         }
 
         private void CheckCondition(object state) {
@@ -125,7 +125,6 @@ namespace Return.Web.Components {
             }
             
         }
-
 
         private void updateLaneStatus() {
             if ((int)KnownNoteLane.Stop == this.Lane?.Id) {
@@ -455,7 +454,8 @@ namespace Return.Web.Components {
 
             this.InvokeAsync(() => {
                 int num = this.Contents.Notes.RemoveAll(n => n.Id == notification.NoteId);
-                //this.updateLaneStatus();
+                this.updateLaneStatus();
+                this.setLaneStatus();
                 if (num > 0) {
                     this.StateHasChanged();
                 }
@@ -472,7 +472,8 @@ namespace Return.Web.Components {
 
         protected void OnNoteDeletedCallback(RetrospectiveNote note) {
             this.Contents.Notes.RemoveAll(n => n.Id == note.Id);
-            //this.updateLaneStatus();
+            this.updateLaneStatus();
+            this.setLaneStatus();
         }
 
         private readonly AutoResettingBoolean _skipFirstUpdate = new AutoResettingBoolean(false);

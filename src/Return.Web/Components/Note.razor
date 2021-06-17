@@ -18,14 +18,14 @@
             <p class="has-text-warning has-text-centered">Couldn't save, the note doesn't belong to you!</p>
         }
 
-        @if (this.RetrospectiveStatus.IsDeletingNotesAllowed) {
+        /** @if (this.RetrospectiveStatus.IsDeletingNotesAllowed) {
             <div class="note__delete-icon"
                  data-keypress-handler="CTRL+Delete" title="You can also press CTRL+Delete when you have the textarea in focus"
                  data-keypress-handler-id="note-@this.Data.Id"
                  @onclick="@this.Delete">
                 <i class="fas fa-trash"></i>
             </div>
-        }
+        }**/
 
         <textarea class="textarea note__content is-small has-fixed-size"
                   data-keypress-handler-id="note-@this.Data.Id"
