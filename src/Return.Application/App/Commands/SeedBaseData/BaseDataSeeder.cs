@@ -34,9 +34,9 @@ namespace Return.Application.App.Commands.SeedBaseData {
 
             // Seed note lanes
             this._returnDbContext.NoteLanes.AddRange(
-                new NoteLane { Id = KnownNoteLane.Start, Name = "Start" },
-                new NoteLane { Id = KnownNoteLane.Stop, Name = "Stop" },
-                new NoteLane { Id = KnownNoteLane.Continue, Name = "Continue" }
+                new NoteLane { Id = KnownNoteLane.Start, Name = "Start \U0001F680" },
+                new NoteLane { Id = KnownNoteLane.Stop, Name = "Stop \U000026D4" },
+                new NoteLane { Id = KnownNoteLane.Continue, Name = "Continue \U0001F44D" }
             );
         }
 

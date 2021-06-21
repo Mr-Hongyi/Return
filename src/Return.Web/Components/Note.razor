@@ -10,7 +10,7 @@
      draggable="@(this.Container?.IsGroupingAllowed() == true ? "true" : null)"
      @ondragstart="@(() => HandleDragStart(this.Data))"
      @ondragend="@(() => HandleDragEnd())"
-     style="background-color: #@this.Data.ParticipantColor.HexString">
+     style="border-color: #@this.Data.ParticipantColor.HexString; background-color: white;">
     @if (this.CanEdit())
     {
         @if (this.ShowErrorMessage)
